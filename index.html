@@ -835,20 +835,23 @@ function buildMark1(){
 // 横から見た形（前が+z）：長くなだらかな前甲板（全長の約1/3）→斜めの前面→箱型の戦闘室（中央）→一段低い平らな機関室
 const CV_HULL_G=(()=>{const s=new THREE.Shape();s.moveTo(-1.6,0.55);s.lineTo(1.35,0.55);s.lineTo(1.72,0.8);s.lineTo(1.7,0.9);s.lineTo(0.56,1.3);s.lineTo(0.14,1.78);s.lineTo(-0.64,1.78);s.lineTo(-0.64,1.43);s.lineTo(-1.6,1.43);s.lineTo(-1.66,0.9);s.closePath();
   const g=new THREE.ExtrudeGeometry(s,{depth:1.5,bevelEnabled:false});g.rotateY(-Math.PI/2);g.translate(0.75,0,0);return g;})();
+// 履帯の横形：下は平ら、前の起動輪を高く持ち上げて斜めに上がる。後ろの誘導輪も少し浮かせる
+const CV_TRACK_G=(()=>{const s=new THREE.Shape();s.moveTo(-1.0,0);s.lineTo(1.0,0);s.lineTo(1.52,0.3);s.lineTo(1.7,0.58);s.lineTo(1.6,0.78);s.lineTo(1.4,0.86);s.lineTo(-1.38,0.8);s.lineTo(-1.6,0.7);s.lineTo(-1.68,0.48);s.lineTo(-1.52,0.24);s.closePath();
+  const g=new THREE.ExtrudeGeometry(s,{depth:0.62,bevelEnabled:false});g.rotateY(-Math.PI/2);g.translate(0.31,0,0);return g;})();
 function buildCV33(){
   const C={body:'#e6c88c',dark:'#bf9f63',hub:'#8f7444',rust:'#a35f34',ink:'#3a2a1c'};
   const root=new THREE.Group(),body=new THREE.Group();root.add(body);
-  const tex=new THREE.CanvasTexture(treadCanvas);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.magFilter=THREE.NearestFilter;tex.repeat.set(5,1);
+  const tex=new THREE.CanvasTexture(treadCanvas);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.magFilter=THREE.NearestFilter;tex.repeat.set(1.4,1.4);
   const trackMat=new THREE.MeshToonMaterial({color:'#ffffff',map:tex,gradientMap:grad});
   const bodyF=toon(C.body,true),wheels=[];
   const WG=new THREE.CylinderGeometry(0.2,0.2,0.14,12),HG=new THREE.CylinderGeometry(0.08,0.08,0.2,8);
   for(const sd of [-1,1]){
-    part(body,new THREE.BoxGeometry(0.62,0.66,2.7),trackMat,sd*0.82,0.42,0);
-    // 起動輪（前）と誘導輪（後ろ）
-    part(body,new THREE.CylinderGeometry(0.36,0.36,0.62,12),'#35302b',sd*0.82,0.46,1.35,0,0,Math.PI/2);
-    part(body,new THREE.CylinderGeometry(0.34,0.34,0.62,12),'#35302b',sd*0.82,0.48,-1.35,0,0,Math.PI/2);
-    part(body,new THREE.CylinderGeometry(0.25,0.25,0.16,8),C.dark,sd*1.18,0.46,1.35,0,0,Math.PI/2,0.04);
-    part(body,new THREE.CylinderGeometry(0.24,0.24,0.16,12),C.dark,sd*1.18,0.48,-1.35,0,0,Math.PI/2,0.04);
+    part(body,CV_TRACK_G,trackMat,sd*0.82,0,0,0,0,0,0.06);
+    // 起動輪（前・高い位置）と誘導輪（後ろ・少し浮く）
+    part(body,new THREE.CylinderGeometry(0.24,0.24,0.16,8),C.dark,sd*1.18,0.58,1.42,0,0,Math.PI/2,0.04);
+    part(body,new THREE.CylinderGeometry(0.09,0.09,0.2,8),C.hub,sd*1.2,0.58,1.42,0,0,Math.PI/2,0.03);
+    part(body,new THREE.CylinderGeometry(0.22,0.22,0.16,12),C.dark,sd*1.18,0.48,-1.4,0,0,Math.PI/2,0.04);
+    part(body,new THREE.CylinderGeometry(0.08,0.08,0.2,8),C.hub,sd*1.2,0.48,-1.4,0,0,Math.PI/2,0.03);
     // 小さい転輪×6（3組のボギー）
     for(const bz of [-0.72,0,0.72]){
       part(body,new THREE.BoxGeometry(0.1,0.14,0.62),C.hub,sd*1.2,0.36,bz,0,0,0,0.03);
@@ -861,9 +864,8 @@ function buildCV33(){
     }
     // サスペンションの縦桁
     part(body,new THREE.BoxGeometry(0.12,0.16,2.2),C.dark,sd*1.16,0.62,0,0,0,0,0.04);
-    // 履帯の上の平たいフェンダー（前後の端は下へ折れる）
-    part(body,new THREE.BoxGeometry(0.66,0.06,2.6),bodyF,sd*0.84,0.92,-0.1,0,0,0,0.04);
-    part(body,new THREE.BoxGeometry(0.66,0.06,0.56),bodyF,sd*0.84,0.82,1.45,0.36,0,0,0.04);
+    // 履帯の上の平たいフェンダー（後ろの端だけ下へ折れる）
+    part(body,new THREE.BoxGeometry(0.66,0.06,3.1),bodyF,sd*0.84,0.93,0.12,0,0,0,0.04);
     part(body,new THREE.BoxGeometry(0.66,0.06,0.3),bodyF,sd*0.84,0.88,-1.53,-0.3,0,0,0.04);
   }
   part(body,CV_HULL_G,bodyF,0,0,0,0,0,0,0.08);
