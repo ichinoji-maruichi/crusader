@@ -325,7 +325,7 @@ const BEST_KEY='bakusou-crusader-best';
 // boostKick=ブースト発動時の初速上乗せ倍率 / boostDur=ブースト時間倍率 / driftYaw=ドリフト中の曲がり倍率
 // driftGrip=ドリフト中の横グリップ（大きいほど滑らない） / driftKeep=ドリフトの横滑りを前進に変える割合 / driftCharge=ブースト溜め速度
 // steer=通常ハンドル / mass=重さ（障害物・敵に当たったときの減速しにくさ） / size=当たり判定とカメラ距離の倍率
-// mass<1 の軽い機体は障害物・敵にぶつかると反対側へ弾かれる / fireTxt=発射時の描き文字
+// mass<1 の軽い機体は障害物・敵にぶつかると反対側へ弾かれ、空中では重力が弱まって遠くまで飛ぶ / fireTxt=発射時の描き文字
 // 特殊能力: brakeTurn=ドリフトの代わりにブレーキ旋回 / crush=障害物・敵を踏みつぶす / wallRide=壁に沿って滑る / sideGuns=左右へ同時砲撃
 const TANKS={
   crusader:{name:'クルセイダー',sub:'巡航戦車 Mk.VI',tip:'よく曲がる！ドリフトでブーストを溜めまくれ',
@@ -1540,8 +1540,8 @@ function updatePlayer(dt){
   vf+=lost*(P.drifting?S.driftKeep:0.25)*(vf>=0?1:-1);
   P.vx=fx*vf+rx*vr2;P.vz=fz*vf+rz*vr2;
   P.x+=P.vx*dt;P.z+=P.vz*dt;
-  // ホップ
-  P.vy-=38*dt;P.y+=P.vy*dt;
+  // ホップ（軽い機体は空中で重力が弱まり、ジャンプ台でふわっと遠くまで飛ぶ）
+  P.vy-=38*(P.air&&S.mass<1?Math.pow(S.mass,0.4):1)*dt;P.y+=P.vy*dt;
   // ジャンプ台：斜面に沿って持ち上げ、上端を越えたら斜面の勾配ぶんの上昇速度で飛び出す
   let onRamp=false;
   for(const r of RAMPS){
