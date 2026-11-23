@@ -324,6 +324,7 @@ const BEST_KEY='bakusou-crusader-best';
 // boostKick=ブースト発動時の初速上乗せ倍率 / boostDur=ブースト時間倍率 / driftYaw=ドリフト中の曲がり倍率
 // driftGrip=ドリフト中の横グリップ（大きいほど滑らない） / driftKeep=ドリフトの横滑りを前進に変える割合 / driftCharge=ブースト溜め速度
 // steer=通常ハンドル / mass=重さ（障害物・敵に当たったときの減速しにくさ） / size=当たり判定とカメラ距離の倍率
+// mass<1 の軽い機体は障害物・敵にぶつかると反対側へ弾かれる / fireTxt=発射時の描き文字
 // 特殊能力: brakeTurn=ドリフトの代わりにブレーキ旋回 / crush=障害物・敵を踏みつぶす / wallRide=壁に沿って滑る / sideGuns=左右へ同時砲撃
 const TANKS={
   crusader:{name:'クルセイダー',sub:'巡航戦車 Mk.VI',tip:'よく曲がる！ドリフトでブーストを溜めまくれ',
@@ -336,6 +337,10 @@ const TANKS={
     acc:34,vmax:57,vboost:92,boostAcc:70,boostKick:0.7,boostDur:0.6,driftYaw:1,driftGrip:10,driftKeep:0.25,driftCharge:1.6,steer:1.45,mass:4,size:1.35,
     brakeTurn:true,crush:true,wallRide:true,sideGuns:true,
     exh:[0.46,3.62,-1.73],camR:13.5,stats:{'加速':2,'最高速':2,'ブースト':3,'ドリフト':1,'重さ':5}},
+  cv33:{name:'カルロベローチェ',sub:'CV33 快速戦車 (L3/33)',tip:'小回り最強！でも軽いからぶつかるとポーンと弾かれる',
+    acc:52,vmax:60,vboost:88,boostAcc:72,boostKick:0.9,boostDur:0.9,driftYaw:1.25,driftGrip:3.0,driftKeep:0.88,driftCharge:1.15,steer:2.85,mass:0.55,size:0.78,
+    fireTxt:['ダダダッ!','ババババ!','ダダダダ!'],
+    exh:[0.3,1.0,-1.75],camR:7.8,stats:{'加速':5,'最高速':3,'ブースト':3,'ドリフト':4,'重さ':1}},
 };
 const TANK_KEYS=Object.keys(TANKS);
 
@@ -826,6 +831,65 @@ function buildMark1(){
   root.scale.setScalar(1.15);
   return {root,body,turret,barrel,muzzle:sideGuns[1].userData.muzzle,sideGuns,wheels,antennas:[],tex,bz:0,wr:0.6,recoil:0,pitch:0,pitchV:0,roll:0,rollV:0,sq:0,sqV:0};
 }
+// ================= デフォルメ・カルロベローチェ（CV33 豆戦車） =================
+const CV_HULL_G=(()=>{const s=new THREE.Shape();s.moveTo(-1.6,0.72);s.lineTo(1.3,0.72);s.lineTo(1.62,0.9);s.lineTo(1.12,1.48);s.lineTo(-0.12,1.48);s.lineTo(-0.3,1.2);s.lineTo(-1.52,1.2);s.lineTo(-1.66,0.95);s.closePath();
+  const g=new THREE.ExtrudeGeometry(s,{depth:1.9,bevelEnabled:false});g.rotateY(-Math.PI/2);g.translate(0.95,0,0);return g;})();
+function buildCV33(){
+  const C={body:'#e6c88c',dark:'#bf9f63',hub:'#8f7444',rust:'#a35f34',ink:'#3a2a1c'};
+  const root=new THREE.Group(),body=new THREE.Group();root.add(body);
+  const tex=new THREE.CanvasTexture(treadCanvas);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.magFilter=THREE.NearestFilter;tex.repeat.set(5,1);
+  const trackMat=new THREE.MeshToonMaterial({color:'#ffffff',map:tex,gradientMap:grad});
+  const bodyF=toon(C.body,true),wheels=[];
+  const WG=new THREE.CylinderGeometry(0.2,0.2,0.14,12),HG=new THREE.CylinderGeometry(0.08,0.08,0.2,8);
+  for(const sd of [-1,1]){
+    part(body,new THREE.BoxGeometry(0.62,0.66,2.7),trackMat,sd*0.82,0.42,0);
+    // 起動輪（前・少し高い）と誘導輪（後ろ）
+    part(body,new THREE.CylinderGeometry(0.38,0.38,0.62,12),'#35302b',sd*0.82,0.5,1.35,0,0,Math.PI/2);
+    part(body,new THREE.CylinderGeometry(0.34,0.34,0.62,12),'#35302b',sd*0.82,0.42,-1.35,0,0,Math.PI/2);
+    part(body,new THREE.CylinderGeometry(0.26,0.26,0.16,8),C.dark,sd*1.18,0.52,1.35,0,0,Math.PI/2,0.04);
+    part(body,new THREE.CylinderGeometry(0.24,0.24,0.16,12),C.dark,sd*1.18,0.42,-1.35,0,0,Math.PI/2,0.04);
+    // 小さい転輪×6（3組のボギー）
+    for(const bz of [-0.72,0,0.72]){
+      part(body,new THREE.BoxGeometry(0.1,0.14,0.62),C.hub,sd*1.2,0.36,bz,0,0,0,0.03);
+      for(const wz of [-0.18,0.18]){
+        const pv=new THREE.Group();pv.position.set(sd*1.14,0.24,bz+wz);body.add(pv);
+        part(pv,WG,C.body,0,0,0,0,0,Math.PI/2,0.04);
+        part(pv,HG,C.hub,0,0,0,0,0,Math.PI/2,0.03);
+        wheels.push(pv);
+      }
+    }
+    // サスペンションの縦桁
+    part(body,new THREE.BoxGeometry(0.12,0.16,2.2),C.dark,sd*1.16,0.66,0,0,0,0,0.04);
+  }
+  part(body,CV_HULL_G,bodyF,0,0,0,0,0,0,0.08);
+  part(body,new THREE.BoxGeometry(0.95,0.5,2.7),bodyF,0,0.5,0,0,0,0,0.05);
+  // 操縦手の視察口・前照灯
+  part(body,new THREE.BoxGeometry(0.5,0.16,0.08),C.dark,-0.38,1.3,1.29,-0.86,0,0,0.03);
+  part(body,new THREE.BoxGeometry(0.34,0.04,0.04),C.ink,-0.38,1.31,1.33,-0.86,0,0,0);
+  part(body,new THREE.CylinderGeometry(0.07,0.09,0.14,8),C.dark,-0.7,1.06,1.25,0,0,0,0.03);
+  part(body,new THREE.SphereGeometry(0.15,10,8),'#fffbe6',-0.7,1.2,1.27,0,0,0,0.03);
+  // 戦闘室の上：開いたハッチ2枚
+  for(const sd of [-1,1])part(body,new THREE.BoxGeometry(0.62,0.06,0.5),C.dark,sd*0.42,1.62,0.25,-1.05,0,0,0.04);
+  // 機関室グリル
+  part(body,new THREE.BoxGeometry(1.3,0.05,0.85),'#5a4636',0,1.22,-0.85,0,0,0,0.03);
+  for(let i=0;i<4;i++)part(body,new THREE.BoxGeometry(1.2,0.05,0.07),C.dark,0,1.26,-1.15+i*0.2,0,0,0,0);
+  // 後部の横置きマフラー
+  part(body,new THREE.CylinderGeometry(0.14,0.14,1.0,10),C.rust,0,0.98,-1.75,0,0,Math.PI/2,0.05);
+  part(body,new THREE.CylinderGeometry(0.06,0.06,0.18,8),'#4a3020',0.55,0.98,-1.75,0,0,Math.PI/2,0.03);
+  // 工具（ツルハシ風の棒）を側面に
+  part(body,new THREE.BoxGeometry(0.05,0.06,1.1),C.rust,0.97,1.08,-0.4,0,0,0,0.03);
+  // 機銃架（砲塔なし。前面の連装機銃）
+  const turret=new THREE.Group();turret.position.set(0.32,1.22,1.02);body.add(turret);
+  part(turret,new THREE.BoxGeometry(0.56,0.42,0.3),toon(C.body,true),0,0,0,0,0,0,0.06);
+  part(turret,new THREE.CylinderGeometry(0.2,0.2,0.32,10),C.dark,0,0,0.2,Math.PI/2,0,0,0.04);
+  const barrel=new THREE.Group();barrel.position.set(0,0,0.3);turret.add(barrel);
+  for(const sd of [-1,1]){
+    part(barrel,new THREE.CylinderGeometry(0.1,0.1,0.55,10),C.dark,sd*0.11,0,0.3,Math.PI/2,0,0,0.03);
+    part(barrel,new THREE.CylinderGeometry(0.045,0.05,1.0,8),C.ink,sd*0.11,0,0.75,Math.PI/2,0,0,0.02);
+  }
+  const muzzle=new THREE.Object3D();muzzle.position.set(0,0,1.3);barrel.add(muzzle);
+  return {root,body,turret,barrel,muzzle,wheels,antennas:[],tex,bz:0.3,wr:0.2,rk:0.25,recoil:0,pitch:0,pitchV:0,roll:0,rollV:0,sq:0,sqV:0};
+}
 function animTank(T,dt,spd,fa,la){
   if(dt<=0)return;
   const wr=spd*dt/(T.wr||0.43);for(const w of T.wheels)w.rotation.x+=wr;
@@ -835,7 +899,7 @@ function animTank(T,dt,spd,fa,la){
   T.sqV+=(-T.sq*170-T.sqV*10)*dt;T.sq+=T.sqV*dt;
   T.body.rotation.x=T.pitch;T.body.rotation.z=T.roll;
   const q=clamp(T.sq,-0.4,0.5);T.body.scale.set(1-q*0.5,1+q,1-q*0.5);
-  T.recoil=damp(T.recoil,0,7,dt);T.barrel.position.z=(T.bz??1.3)-T.recoil*0.75;
+  T.recoil=damp(T.recoil,0,7,dt);T.barrel.position.z=(T.bz??1.3)-T.recoil*0.75*(T.rk??1);
   if(T.sideGuns)for(const g of T.sideGuns)g.position.x=g.userData.x0-g.userData.sd*T.recoil*0.45;
   for(const a of T.antennas){
     const u=a.userData;
@@ -1179,13 +1243,13 @@ function preparePlayer(T){
   T.root.traverse(o=>{if(!o.isMesh)return;if(o.material===OUT){o.material=out;return;}let m=map.get(o.material);if(!m){m=o.material.clone();map.set(o.material,m);mats.push(m);}o.material=m;});
   T.mats=mats;T.out=out;T.root.rotation.order='YXZ';T.root.visible=false;scene.add(T.root);return T;
 }
-const PTANKS={crusader:preparePlayer(buildTank({})),tiger:preparePlayer(buildTiger()),mark1:preparePlayer(buildMark1())};
+const PTANKS={crusader:preparePlayer(buildTank({})),tiger:preparePlayer(buildTiger()),mark1:preparePlayer(buildMark1()),cv33:preparePlayer(buildCV33())};
 let tankKey='crusader';try{const k=localStorage.getItem('bakusou-crusader-tank');if(TANKS[k])tankKey=k;}catch(e){}
 let tankP=PTANKS[tankKey],S=TANKS[tankKey],PMATS=tankP.mats,P_OUT=tankP.out;
 tankP.root.visible=true;
 const _ink=new THREE.Color(INK);
 // タイトルで選べる車体カラー [名前, 車体, 影色, 金具]。先頭は各機体の元の色。敵の灰・オリーブ・薄紫とかぶらない色にする
-const TANK_BASE={crusader:['#e9c375','#c49b54','#a07a3a'],tiger:['#e3bb68','#bf954d','#9c7536'],mark1:['#c8a77a','#a3845a','#7d6340']};
+const TANK_BASE={crusader:['#e9c375','#c49b54','#a07a3a'],tiger:['#e3bb68','#bf954d','#9c7536'],mark1:['#c8a77a','#a3845a','#7d6340'],cv33:['#e6c88c','#bf9f63','#8f7444']};
 const TANK_COLS=[['ノーマル'],['レッド','#ff6b57','#d4473a','#9e2f27'],['ブルー','#5fb4ff','#3e88d4','#2d5f9c'],['ピンク','#ff9ed2','#e06fae','#a84c80'],
   ['グリーン','#6fd36b','#45a84a','#2f7a35'],['ゴールド','#ffd23d','#e0a51c','#a87414'],['ホワイト','#f4f1ea','#cfc9bd','#9e978a'],['ブラック','#5a5560','#3d3942','#26232a']];
 for(const k in PTANKS){const r=TANK_BASE[k].map(c=>new THREE.Color(c).getHex());for(const m of PTANKS[k].mats)m.userData.role=r.indexOf(m.color.getHex())+1;}
@@ -1324,7 +1388,7 @@ function fire(){
     star(p.x+dx*1.5,p.y,p.z+dz*1.5,1.1,'#fff3a0',0.16);
   }
   if(shots.length>1)popText(pick(['ドドン!!','ズドドン!!']),{follow:P,cls:'white',size:40,life:0.6});
-  else popText(pick(['ドン!','ドンッ!','ズドン!']),{pos:shots[0][0].add(_v.set(0,1.2,0)),cls:'white',size:34,life:0.6});
+  else popText(pick(S.fireTxt||['ドン!','ドンッ!','ズドン!']),{pos:shots[0][0].add(_v.set(0,1.2,0)),cls:'white',size:34,life:0.6});
   tankP.recoil=1;tankP.pitchV-=shots.length>1?1:3.2;tankP.sqV-=1.5;kickAntennas(tankP,5);
   shake=Math.max(shake,0.32);SFX.fire();rumble(0.55,0.35,140);
 }
@@ -1500,7 +1564,7 @@ function updatePlayer(dt){
         popText(pick(['ガリガリ!!','ギャリギャリ!!','ゴリゴリ!!']),{follow:P,cls:'orange',size:38,life:0.7});SFX.crash();rumble(0.35,0.5,160);
       }
     }else if(vn>0){
-      P.vx-=nx*vn*1.35;P.vz-=nz*vn*1.35;P.vx*=0.985;P.vz*=0.985;
+      const wb=1+0.35/Math.sqrt(S.mass);P.vx-=nx*vn*wb;P.vz-=nz*vn*wb;P.vx*=0.985;P.vz*=0.985;
       if(vn>13&&P.wallCool<=0){
         P.wallCool=0.45;shake=Math.max(shake,clamp(vn/60,0.15,0.6));tankP.rollV+=sg*vn*0.08;kickAntennas(tankP,5);
         toWorld(-sg*1.8,1,1.2);for(let i=0;i<12;i++)spark(_v.x,_v.y,_v.z,rand(-6,6)+P.vx*0.5,rand(3,10),rand(-6,6)+P.vz*0.5,pick(['#ffe14d','#ffffff']),rand(.25,.5));
@@ -1528,13 +1592,19 @@ function updatePlayer(dt){
       crushObs(o);P.vx*=0.97;P.vz*=0.97;P.vy=Math.max(P.vy,3.5);tankP.pitchV-=5;tankP.sqV-=2;continue;
     }
     if(sp<7){P.x+=r.nx*r.pen;P.z+=r.nz*r.pen;const vn=P.vx*r.nx+P.vz*r.nz;if(vn<0){P.vx-=r.nx*vn;P.vz-=r.nz*vn;}continue;}
-    const pen=1-(1-o.pen)/S.mass;P.vx*=pen;P.vz*=pen;
+    const pen=S.mass>=1?1-(1-o.pen)/S.mass:o.pen;P.vx*=pen;P.vz*=pen;const pvx=P.vx,pvz=P.vz;
+    if(S.mass<1){
+      // 軽い機体：ぶつかった反対側へポーンと弾かれる
+      const bf=(1/S.mass-1)*0.6*sp;P.vx+=r.nx*bf;P.vz+=r.nz*bf;P.x+=r.nx*r.pen;P.z+=r.nz*r.pen;
+      P.vy=Math.max(P.vy,7.5);P.yaw+=rand(-1,1)*4;tankP.rollV+=rand(-8,8);
+      popText(pick(['ポーン!','ぽよーん!','ボヨン!']),{follow:P,cls:'blue',size:38,life:0.7});
+    }
     if(o.explosive){
-      explode(o.x,1,o.z,1.3);P.vy=9;tankP.rollV+=rand(-6,6);
+      explode(o.x,1,o.z,1.3);P.vy=9/Math.sqrt(S.mass);tankP.rollV+=rand(-6,6);
       popText('ドッカーン!!',{pos:_v.set(o.x,4,o.z),cls:'red',size:60,life:1});
       blastObs(o,fx,fz,1.2);
     }else{
-      o.state='fly';o.t=0;o.vel.set(P.vx/pen*0.9+rand(-4,4),12+sp*0.15,P.vz/pen*0.9+rand(-4,4));o.av.set(rand(-10,10),rand(-6,6),rand(-10,10));
+      o.state='fly';o.t=0;o.vel.set(pvx/pen*0.9+rand(-4,4),12+sp*0.15,pvz/pen*0.9+rand(-4,4));o.av.set(rand(-10,10),rand(-6,6),rand(-10,10));
       for(let i=0;i<10;i++)spark(cx+fx*2,1,cz+fz*2,rand(-8,8),rand(4,12),rand(-8,8),'#ffe14d',rand(.3,.6));
       star(cx+fx*2.2,1.6,cz+fz*2.2,2.4);
       popText(o.type==='cones'?pick(['ポコーン!','カコーン!']):pick(['ガシャーン!!','ドガッ!!','ベキャッ!!']),{pos:_v.set(o.x,o.y+2.5,o.z),cls:o.type==='cones'?'white':'orange',size:o.type==='cones'?38:50,life:0.9});
@@ -1556,7 +1626,8 @@ function updatePlayer(dt){
     if(rv<0){
       const bk=1+0.4/S.mass;P.vx-=nx*rv*bk;P.vz-=nz*rv*bk;
       if(-rv>8&&P.hitCool<=0){
-        const hk=1-0.3/S.mass;P.hitCool=0.4;P.vx*=hk;P.vz*=hk;
+        const hk=S.mass>=1?1-0.3/S.mass:0.8;P.hitCool=0.4;P.vx*=hk;P.vz*=hk;
+        if(S.mass<1){const bf=(1/S.mass-1)*0.9*(-rv);P.vx+=nx*bf;P.vz+=nz*bf;P.vy=Math.max(P.vy,7.5);P.yaw+=rand(-1,1)*4;tankP.rollV+=rand(-8,8);popText(pick(['ポーン!','ぽよーん!']),{follow:P,cls:'blue',size:38,life:0.7});}
         e.knockV+=-(nx*TNX[P.idx]+nz*TNZ[P.idx])*clamp(-rv,0,40)*0.5*S.mass;e.wob=1;e.spd=Math.max(10,e.spd*0.85);
         tankP.sqV-=2.5;kickAntennas(tankP,7);kickAntennas(e.T,7);e.T.sqV-=3;
         shake=Math.max(shake,0.4);star(e.x+nx*2,2,e.z+nz*2,2.2);
