@@ -340,7 +340,7 @@ const TANKS={
   cv33:{name:'カルロベローチェ',sub:'CV33 快速戦車 (L3/33)',tip:'小回り最強！でも軽いからぶつかるとポーンと弾かれる',
     acc:52,vmax:60,vboost:88,boostAcc:72,boostKick:0.9,boostDur:0.9,driftYaw:1.25,driftGrip:3.0,driftKeep:0.88,driftCharge:1.15,steer:2.85,mass:0.55,size:0.78,
     fireTxt:['ダダダッ!','ババババ!','ダダダダ!'],
-    exh:[0.9,1.05,-1.7],camR:7.8,stats:{'加速':5,'最高速':3,'ブースト':3,'ドリフト':4,'重さ':1}},
+    exh:[0.84,1.14,-1.82],camR:7.8,stats:{'加速':5,'最高速':3,'ブースト':3,'ドリフト':4,'重さ':1}},
 };
 const TANK_KEYS=Object.keys(TANKS);
 
@@ -832,8 +832,8 @@ function buildMark1(){
   return {root,body,turret,barrel,muzzle:sideGuns[1].userData.muzzle,sideGuns,wheels,antennas:[],tex,bz:0,wr:0.6,recoil:0,pitch:0,pitchV:0,roll:0,rollV:0,sq:0,sqV:0};
 }
 // ================= デフォルメ・カルロベローチェ（CV33 豆戦車） =================
-// 横から見た形（前が+z）：低い鼻先→斜めの前面装甲→箱型の戦闘室→一段低い機関室
-const CV_HULL_G=(()=>{const s=new THREE.Shape();s.moveTo(-1.55,0.55);s.lineTo(1.3,0.55);s.lineTo(1.66,0.82);s.lineTo(1.02,1.12);s.lineTo(0.92,1.78);s.lineTo(-0.3,1.78);s.lineTo(-0.42,1.32);s.lineTo(-1.5,1.2);s.lineTo(-1.62,0.9);s.closePath();
+// 横から見た形（前が+z）：長くなだらかな前甲板（全長の約1/3）→斜めの前面→箱型の戦闘室（中央）→一段低い平らな機関室
+const CV_HULL_G=(()=>{const s=new THREE.Shape();s.moveTo(-1.6,0.55);s.lineTo(1.35,0.55);s.lineTo(1.72,0.8);s.lineTo(1.7,0.9);s.lineTo(0.56,1.3);s.lineTo(0.14,1.78);s.lineTo(-0.64,1.78);s.lineTo(-0.64,1.43);s.lineTo(-1.6,1.43);s.lineTo(-1.66,0.9);s.closePath();
   const g=new THREE.ExtrudeGeometry(s,{depth:1.5,bevelEnabled:false});g.rotateY(-Math.PI/2);g.translate(0.75,0,0);return g;})();
 function buildCV33(){
   const C={body:'#e6c88c',dark:'#bf9f63',hub:'#8f7444',rust:'#a35f34',ink:'#3a2a1c'};
@@ -867,30 +867,32 @@ function buildCV33(){
     part(body,new THREE.BoxGeometry(0.66,0.06,0.3),bodyF,sd*0.84,0.88,-1.53,-0.3,0,0,0.04);
   }
   part(body,CV_HULL_G,bodyF,0,0,0,0,0,0,0.08);
-  // 戦闘室の右前：盛り上がった操縦手フード（視察スリット付き）と前照灯
-  part(body,new THREE.BoxGeometry(0.52,0.3,0.5),bodyF,-0.33,1.88,0.72,0,0,0,0.05);
-  part(body,new THREE.BoxGeometry(0.34,0.05,0.04),C.ink,-0.33,1.9,0.98,0,0,0,0);
-  part(body,new THREE.CylinderGeometry(0.08,0.1,0.12,8),C.dark,-0.64,1.84,0.84,0,0,0,0.03);
-  part(body,new THREE.SphereGeometry(0.13,10,8),'#fffbe6',-0.64,1.94,0.86,0,0,0,0.03);
+  // 戦闘室の右前：斜めの前面から張り出した操縦手フード（視察スリット付き）と前照灯
+  part(body,new THREE.BoxGeometry(0.52,0.34,0.42),bodyF,-0.33,1.62,0.42,0,0,0,0.05);
+  part(body,new THREE.BoxGeometry(0.34,0.05,0.04),C.ink,-0.33,1.68,0.64,0,0,0,0);
+  part(body,new THREE.CylinderGeometry(0.07,0.09,0.1,8),C.dark,-0.52,1.82,0.52,0,0,0,0.03);
+  part(body,new THREE.SphereGeometry(0.11,10,8),'#fffbe6',-0.52,1.9,0.54,0,0,0,0.03);
   // 屋根の平たいハッチ2枚（丸い覗き窓付き）
   for(const sd of [-1,1]){
-    part(body,new THREE.BoxGeometry(0.6,0.07,0.6),C.dark,sd*0.34,1.81,0.02,0,0,0,0.04);
-    part(body,new THREE.CylinderGeometry(0.09,0.09,0.07,10),C.hub,sd*0.34,1.87,0.02,0,0,0,0.03);
+    part(body,new THREE.BoxGeometry(0.6,0.07,0.64),C.dark,sd*0.34,1.81,-0.25,0,0,0,0.04);
+    part(body,new THREE.CylinderGeometry(0.09,0.09,0.07,10),C.hub,sd*0.34,1.87,-0.25,0,0,0,0.03);
   }
-  // 一段低い機関室：グリル
-  part(body,new THREE.BoxGeometry(1.2,0.05,0.8),'#5a4636',0,1.29,-0.95,-0.11,0,0,0.03);
-  for(let i=0;i<4;i++)part(body,new THREE.BoxGeometry(1.1,0.05,0.07),C.dark,0,1.31-i*0.02,-0.68-i*0.18,-0.11,0,0,0);
-  // 後面：横向きのマフラー2本（車体の外へはみ出す）と丸い点検板
+  // 一段低い機関室：後ろ寄りにグリル
+  part(body,new THREE.BoxGeometry(1.1,0.05,0.6),'#5a4636',0,1.45,-1.25,0,0,0,0.03);
+  for(let i=0;i<4;i++)part(body,new THREE.BoxGeometry(1.0,0.05,0.07),C.dark,0,1.49,-1.02-i*0.15,0,0,0,0);
+  // 後ろの両端：縦向き（前後方向）のマフラー2本、後面に丸い点検板
   for(const sd of [-1,1]){
-    part(body,new THREE.CylinderGeometry(0.15,0.15,0.62,10),C.rust,sd*0.55,1.05,-1.7,0,0,Math.PI/2,0.05);
-    part(body,new THREE.CylinderGeometry(0.07,0.07,0.12,8),'#4a3020',sd*0.88,1.05,-1.7,0,0,Math.PI/2,0.03);
+    part(body,new THREE.CylinderGeometry(0.16,0.16,0.62,10),C.rust,sd*0.84,1.14,-1.45,Math.PI/2,0,0,0.05);
+    part(body,new THREE.CylinderGeometry(0.07,0.07,0.12,8),'#4a3020',sd*0.84,1.14,-1.78,Math.PI/2,0,0,0.03);
   }
-  part(body,new THREE.CylinderGeometry(0.24,0.24,0.06,14),C.dark,0,0.76,-1.6,Math.PI/2,0,0,0.03);
-  // 工具（ツルハシ風の棒）を左の側面に
-  part(body,new THREE.BoxGeometry(0.05,0.06,1.0),C.rust,0.78,1.08,-0.75,0,0,0,0.03);
-  // 機銃架（砲塔なし。戦闘室の前面・左寄りに連装機銃）
-  const turret=new THREE.Group();turret.position.set(0.36,1.42,0.98);body.add(turret);
-  part(turret,new THREE.BoxGeometry(0.5,0.42,0.22),bodyF,0,0,0,0,0,0,0.05);
+  part(body,new THREE.CylinderGeometry(0.22,0.22,0.06,14),C.dark,0,1.1,-1.66,Math.PI/2,0,0,0.03);
+  // 左の側面に予備の転輪、右の側面に工具
+  part(body,new THREE.CylinderGeometry(0.21,0.21,0.1,12),C.dark,0.8,1.17,-0.95,0,0,Math.PI/2,0.04);
+  part(body,new THREE.CylinderGeometry(0.08,0.08,0.14,8),C.hub,0.82,1.17,-0.95,0,0,Math.PI/2,0.03);
+  part(body,new THREE.BoxGeometry(0.05,0.06,1.0),C.rust,-0.78,1.12,-1.0,0,0,0,0.03);
+  // 機銃架（砲塔なし。戦闘室の斜めの前面・左寄りに連装機銃）
+  const turret=new THREE.Group();turret.position.set(0.36,1.47,0.47);body.add(turret);
+  part(turret,new THREE.BoxGeometry(0.5,0.42,0.26),bodyF,0,0,0,0,0,0,0.05);
   part(turret,new THREE.CylinderGeometry(0.18,0.18,0.3,10),C.dark,0,0,0.15,Math.PI/2,0,0,0.04);
   const barrel=new THREE.Group();barrel.position.set(0,0,0.3);turret.add(barrel);
   for(const sd of [-1,1]){
