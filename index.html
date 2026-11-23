@@ -281,6 +281,7 @@ body:not(.touch) .sp{display:none}
     <h2>PAUSE</h2>
     <button class="btn" id="bResume">つづける</button>
     <button class="btn sub" id="bRestart">リトライ</button>
+    <button class="btn sub" id="bPTitle">タイトルへ</button>
     <div class="opts"><button class="opt" data-k="bgm">BGM <i>ON</i></button><button class="opt" data-k="se">効果音 <i>ON</i></button><button class="opt" data-k="vib">振動 <i>ON</i></button><button class="opt2 cfgOpen">🎮 ボタン設定</button></div>
   </div>
 </div>
@@ -340,7 +341,7 @@ const TANKS={
   cv33:{name:'カルロベローチェ',sub:'CV33 快速戦車 (L3/33)',tip:'小回り最強！でも軽いからぶつかるとポーンと弾かれる',
     acc:52,vmax:60,vboost:88,boostAcc:72,boostKick:0.9,boostDur:0.9,driftYaw:1.25,driftGrip:3.0,driftKeep:0.88,driftCharge:1.15,steer:2.85,mass:0.55,size:0.78,
     fireTxt:['ダダダッ!','ババババ!','ダダダダ!'],
-    exh:[0.84,1.14,-1.82],camR:7.8,stats:{'加速':5,'最高速':3,'ブースト':3,'ドリフト':4,'重さ':1}},
+    exh:[0.84,1.0,-1.82],camR:7.8,stats:{'加速':5,'最高速':3,'ブースト':3,'ドリフト':4,'重さ':1}},
 };
 const TANK_KEYS=Object.keys(TANKS);
 
@@ -833,10 +834,10 @@ function buildMark1(){
 }
 // ================= デフォルメ・カルロベローチェ（CV33 豆戦車） =================
 // 横から見た形（前が+z）：長くなだらかな前甲板（全長の約1/3）→斜めの前面→箱型の戦闘室（中央）→一段低い平らな機関室
-const CV_HULL_G=(()=>{const s=new THREE.Shape();s.moveTo(-1.6,0.55);s.lineTo(1.35,0.55);s.lineTo(1.72,0.8);s.lineTo(1.7,0.9);s.lineTo(0.56,1.3);s.lineTo(0.14,1.78);s.lineTo(-0.64,1.78);s.lineTo(-0.64,1.43);s.lineTo(-1.6,1.43);s.lineTo(-1.66,0.9);s.closePath();
+const CV_HULL_G=(()=>{const s=new THREE.Shape();s.moveTo(-1.6,0.55);s.lineTo(1.35,0.55);s.lineTo(1.74,0.82);s.lineTo(1.7,1.0);s.lineTo(0.56,1.3);s.lineTo(0.14,1.78);s.lineTo(-0.64,1.78);s.lineTo(-0.64,1.43);s.lineTo(-1.6,1.43);s.lineTo(-1.66,0.9);s.closePath();
   const g=new THREE.ExtrudeGeometry(s,{depth:1.5,bevelEnabled:false});g.rotateY(-Math.PI/2);g.translate(0.75,0,0);return g;})();
-// 履帯の横形：下は平ら、前の起動輪を高く持ち上げて斜めに上がる。後ろの誘導輪も少し浮かせる
-const CV_TRACK_G=(()=>{const s=new THREE.Shape();s.moveTo(-1.0,0);s.lineTo(1.0,0);s.lineTo(1.52,0.3);s.lineTo(1.7,0.58);s.lineTo(1.6,0.78);s.lineTo(1.4,0.86);s.lineTo(-1.38,0.8);s.lineTo(-1.6,0.7);s.lineTo(-1.68,0.48);s.lineTo(-1.52,0.24);s.closePath();
+// 履帯の横形：下は平ら。上面は後ろの誘導輪から前の起動輪へ向かって斜めに上がる（起動輪がいちばん高い）
+const CV_TRACK_G=(()=>{const s=new THREE.Shape();s.moveTo(-1.0,0);s.lineTo(1.0,0);s.lineTo(1.5,0.42);s.lineTo(1.76,0.76);s.lineTo(1.72,0.98);s.lineTo(1.52,1.1);s.lineTo(-1.38,0.72);s.lineTo(-1.6,0.62);s.lineTo(-1.68,0.42);s.lineTo(-1.52,0.2);s.closePath();
   const g=new THREE.ExtrudeGeometry(s,{depth:0.62,bevelEnabled:false});g.rotateY(-Math.PI/2);g.translate(0.31,0,0);return g;})();
 function buildCV33(){
   const C={body:'#e6c88c',dark:'#bf9f63',hub:'#8f7444',rust:'#a35f34',ink:'#3a2a1c'};
@@ -848,10 +849,10 @@ function buildCV33(){
   for(const sd of [-1,1]){
     part(body,CV_TRACK_G,trackMat,sd*0.82,0,0,0,0,0,0.06);
     // 起動輪（前・高い位置）と誘導輪（後ろ・少し浮く）
-    part(body,new THREE.CylinderGeometry(0.24,0.24,0.16,8),C.dark,sd*1.18,0.58,1.42,0,0,Math.PI/2,0.04);
-    part(body,new THREE.CylinderGeometry(0.09,0.09,0.2,8),C.hub,sd*1.2,0.58,1.42,0,0,Math.PI/2,0.03);
-    part(body,new THREE.CylinderGeometry(0.22,0.22,0.16,12),C.dark,sd*1.18,0.48,-1.4,0,0,Math.PI/2,0.04);
-    part(body,new THREE.CylinderGeometry(0.08,0.08,0.2,8),C.hub,sd*1.2,0.48,-1.4,0,0,Math.PI/2,0.03);
+    part(body,new THREE.CylinderGeometry(0.24,0.24,0.16,8),C.dark,sd*1.18,0.82,1.5,0,0,Math.PI/2,0.04);
+    part(body,new THREE.CylinderGeometry(0.09,0.09,0.2,8),C.hub,sd*1.2,0.82,1.5,0,0,Math.PI/2,0.03);
+    part(body,new THREE.CylinderGeometry(0.22,0.22,0.16,12),C.dark,sd*1.18,0.45,-1.4,0,0,Math.PI/2,0.04);
+    part(body,new THREE.CylinderGeometry(0.08,0.08,0.2,8),C.hub,sd*1.2,0.45,-1.4,0,0,Math.PI/2,0.03);
     // 小さい転輪×6（3組のボギー）
     for(const bz of [-0.72,0,0.72]){
       part(body,new THREE.BoxGeometry(0.1,0.14,0.62),C.hub,sd*1.2,0.36,bz,0,0,0,0.03);
@@ -864,9 +865,9 @@ function buildCV33(){
     }
     // サスペンションの縦桁
     part(body,new THREE.BoxGeometry(0.12,0.16,2.2),C.dark,sd*1.16,0.62,0,0,0,0,0.04);
-    // 履帯の上の平たいフェンダー（後ろの端だけ下へ折れる）
-    part(body,new THREE.BoxGeometry(0.66,0.06,3.1),bodyF,sd*0.84,0.93,0.12,0,0,0,0.04);
-    part(body,new THREE.BoxGeometry(0.66,0.06,0.3),bodyF,sd*0.84,0.88,-1.53,-0.3,0,0,0.04);
+    // 履帯の上のフェンダー（履帯の上面に沿って前上がり、後ろの端は下へ折れる）
+    part(body,new THREE.BoxGeometry(0.66,0.06,3.1),bodyF,sd*0.84,0.99,0.08,-0.124,0,0,0.04);
+    part(body,new THREE.BoxGeometry(0.66,0.06,0.3),bodyF,sd*0.84,0.75,-1.6,-0.3,0,0,0.04);
   }
   part(body,CV_HULL_G,bodyF,0,0,0,0,0,0,0.08);
   // 戦闘室の右前：斜めの前面から張り出した操縦手フード（視察スリット付き）と前照灯
@@ -884,8 +885,8 @@ function buildCV33(){
   for(let i=0;i<4;i++)part(body,new THREE.BoxGeometry(1.0,0.05,0.07),C.dark,0,1.49,-1.02-i*0.15,0,0,0,0);
   // 後ろの両端：縦向き（前後方向）のマフラー2本、後面に丸い点検板
   for(const sd of [-1,1]){
-    part(body,new THREE.CylinderGeometry(0.16,0.16,0.62,10),C.rust,sd*0.84,1.14,-1.45,Math.PI/2,0,0,0.05);
-    part(body,new THREE.CylinderGeometry(0.07,0.07,0.12,8),'#4a3020',sd*0.84,1.14,-1.78,Math.PI/2,0,0,0.03);
+    part(body,new THREE.CylinderGeometry(0.16,0.16,0.62,10),C.rust,sd*0.84,1.0,-1.45,Math.PI/2,0,0,0.05);
+    part(body,new THREE.CylinderGeometry(0.07,0.07,0.12,8),'#4a3020',sd*0.84,1.0,-1.78,Math.PI/2,0,0,0.03);
   }
   part(body,new THREE.CylinderGeometry(0.22,0.22,0.06,14),C.dark,0,1.1,-1.66,Math.PI/2,0,0,0.03);
   // 左の側面に予備の転輪、右の側面に工具
@@ -1894,6 +1895,7 @@ addEventListener('keydown',e=>{
   if(e.code==='Space'||e.code==='KeyX'||e.code==='KeyJ'){e.preventDefault();if(!e.repeat)onFire();}
   if(e.code==='Enter'&&(G.state==='title'||G.state==='result'))startRace();
   if(e.code==='KeyR'&&G.state!=='title')startRace();
+  if(e.code==='KeyT'&&G.state==='paused')toTitle();
   if(CFG.open){if(e.code==='Escape')closeCfg();return;}
   if(e.code==='KeyP'||e.code==='Escape')togglePause();
 });
@@ -2011,7 +2013,7 @@ function bindTouch(id,key,onDown){
 }
 bindTouch('tDrift','drift');bindTouch('tBrake','down');bindTouch('tFire',null,onFire);
 $('bStart').onclick=startRace;$('selL').onclick=()=>selectTank(-1);$('selR').onclick=()=>selectTank(1);$('bRetry').onclick=startRace;$('bTitle').onclick=toTitle;
-$('bResume').onclick=togglePause;$('bRestart').onclick=startRace;
+$('bResume').onclick=togglePause;$('bRestart').onclick=startRace;$('bPTitle').onclick=toTitle;
 document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{audioInit();const k=b.dataset.k;SET[k]=!SET[k];applySettings();if(k==='vib'&&SET.vib)rumble(0.6,0.6,200);});
 applySettings();
 document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>b.blur()));
